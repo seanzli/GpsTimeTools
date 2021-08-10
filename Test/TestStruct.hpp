@@ -4,7 +4,7 @@
  * @Author: Sean
  * @Date: 2021-08-10 21:07:15
  * @LastEditors: Sean
- * @LastEditTime: 2021-08-10 21:17:02
+ * @LastEditTime: 2021-08-10 21:22:01
  */
 
 #include <iostream>
@@ -20,6 +20,6 @@ TEST(StructTest, handleFunction) {
 
 
     EXPECT_DOUBLE_EQ(b - a, 1.03);
+    EXPECT_EQ(b - 1.03, a);
     EXPECT_EQ(b, a + 1.03);
-
 }
