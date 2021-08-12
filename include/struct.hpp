@@ -4,7 +4,7 @@
  * @Author: Sean
  * @Date: 2021-08-10 20:54:55
  * @LastEditors: Sean
- * @LastEditTime: 2021-08-12 21:56:53
+ * @LastEditTime: 2021-08-12 21:59:41
  */
 
 #ifndef _GPS_TIME_TOOL_STRUCT_H_
@@ -159,6 +159,27 @@ namespace GpsTimeTool
      */
     gtime_t gpst2gtime(const gps_t& in) {
         gtime_t res = epoch2gtime(gpst0);
+        res.time += in.week * SEC_A_WEEK + (int)in.sec;
+        res.sec += (in.sec - (int)in.sec);
+        return res;
+    }
+
+        /**
+     * @description: convert gtime_t time to gps time
+     * @param  {const gtime_t}   in:                 input:     gtime_t
+     * @return {gps_t}    :                         output:     gps_t
+     */
+    gps_t gtime2bdt(const gtime_t& in) {
+        return gps_t(in - epoch2gtime(bdt0));
+    }
+
+    /**
+     * @description: convert gps time to gtime
+     * @param  {const gps_t}   in:                  input:     gps_t
+     * @return {gtime_t}    :                      output:     gtime_t
+     */
+    gtime_t bdt2gtime(const gps_t& in) {
+        gtime_t res = epoch2gtime(bdt0);
         res.time += in.week * SEC_A_WEEK + (int)in.sec;
         res.sec += (in.sec - (int)in.sec);
         return res;
