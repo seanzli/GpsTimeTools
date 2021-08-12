@@ -4,15 +4,15 @@
  * @Author: Sean
  * @Date: 2021-08-11 20:34:22
  * @LastEditors: Sean
- * @LastEditTime: 2021-08-11 20:54:53
+ * @LastEditTime: 2021-08-12 21:56:00
  */
 
 #include <vector>
 
 namespace GpsTimeTool {
 
-    constexpr double gpst0[] = {1980,1,6,0,0,0};    // gps time reference
-    constexpr double bdt0[]  = {2006,1,1,0,0,0};    // beidou time reference
+    static const std::vector<double> gpst0 = {1980,1,6,0,0,0};    // gps time reference
+    static const std::vector<double> bdt0  = {2006,1,1,0,0,0};    // beidou time reference
 
     constexpr unsigned int MAXLEAPS = 18;
     constexpr double leaps[MAXLEAPS + 1][7] = {
@@ -42,6 +42,10 @@ namespace GpsTimeTool {
         31,29,31,30,31,30,31,31,30,31,30,31,31,28,31,30,31,30,31,31,30,31,30,31
     };
 
-    constexpr unsigned char doy[]  = {1,32,60,91,121,152,182,213,244,274,305,335}; //month day
+    constexpr unsigned int doy[]  = {1,32,60,91,121,152,182,213,244,274,305,335}; //month day
 
+    constexpr unsigned int SEC_A_DAY = 86400;
+    constexpr unsigned int SEC_A_WEEK = 604800;
+
+    constexpr double DOUBLE_ZERO = 1e-7;
 };

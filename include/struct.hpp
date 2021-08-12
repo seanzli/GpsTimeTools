@@ -4,7 +4,7 @@
  * @Author: Sean
  * @Date: 2021-08-10 20:54:55
  * @LastEditors: Sean
- * @LastEditTime: 2021-08-11 20:58:13
+ * @LastEditTime: 2021-08-12 21:56:53
  */
 
 #ifndef _GPS_TIME_TOOL_STRUCT_H_
@@ -15,20 +15,26 @@
 #include <cmath>
 #include <vector>
 
+//#include <iostream> // for debug;
+
 // other header
 #include "ConstDefine.h"
 
 namespace GpsTimeTool
 {
-    /* sturct gtime_t */
-    struct gtime_t
+    /* class gtime_t */
+    class gtime_t
     {
+    public:
         time_t time;    //time (s)  expressed by stardard time_t
         double sec;     //second under 1 s
 
         constexpr gtime_t() : time(0), sec(0.0) {}
-        constexpr gtime_t(time_t _t, double _sec) : time(_t), sec(_sec) {}
         constexpr gtime_t(time_t _t) : time(_t), sec(0.0) {}
+        gtime_t(time_t _t, double _sec) {
+            time = _t + (int)_sec;
+            sec = _sec - (int)_sec;
+        }
 
         gtime_t operator+(double _sec) noexcept
         {
@@ -49,16 +55,50 @@ namespace GpsTimeTool
             return difftime(this->time, in.time) + this->sec - in.sec;
         }
 
-        bool operator==(gtime_t t) const
-        {
-            return (this->time == t.time) && (fabs(this->sec - t.sec) < 1e-9);
+        bool operator==(gtime_t t) const {
+            return (this->time == t.time) && (fabs(this->sec - t.sec) < DOUBLE_ZERO);
         }
+    };
+
+    /* class gps_t*/
+    class gps_t {
+    public:
+        int week;   // week number in gps time
+        double sec; // time of week in gps time (s)
+
+        constexpr gps_t() : week(0), sec(0.0) {}
+        gps_t(int _week, double _sec) {
+            week = _week + floor(_sec / SEC_A_WEEK);
+            sec = _sec - floor(_sec / SEC_A_WEEK) * SEC_A_WEEK;
+        }
+
+        gps_t(double _sec) {
+            this->week = _sec / SEC_A_WEEK;
+            this->sec = _sec - this->week * SEC_A_WEEK;
+        }
+
+        double operator-(const gps_t& in) const noexcept{
+            return (this->week - in.week) * SEC_A_WEEK + this->sec - in.sec;
+        }
+
+        gps_t operator+(const double& in) const noexcept{
+            return gps_t(this->week * SEC_A_WEEK + this->sec + in);
+        }
+
+        gps_t operator-(const double& in) const noexcept{
+            return this->operator+(in * (-1.0));
+        }
+
+        bool operator==(const gps_t& in) const noexcept {
+            return (this->week == in.week) && (fabs(this->sec - in.sec) < DOUBLE_ZERO);
+        }
+        
     };
 
     /**
      * @description: convert gtime_t to epoch time
-     * @param  {const gtime_t}  in:             input:      gtime_t
-     * @param  {std::vector<double>} epoch:     output:     year, mon, day, hour, min, sec
+     * @param  {const gtime_t}  in:                   input:      gtime_t
+     * @param  {std::vector<double>} epoch:          output:     year, mon, day, hour, min, sec
      * @return {*}
      */
     void gtime2epoch(const gtime_t in, std::vector<double> &epoch)
@@ -86,10 +126,9 @@ namespace GpsTimeTool
 
     /**
      * @description: convert epoch time to gtime_t
-     * @param  {std::vector<double>} epoch:     input:     year, mon, day, hour, min, sec
-     * @return {const gtime_t}    :             output:    gtime_t
+     * @param  {const std::vector<double>} epoch:     input:     year, mon, day, hour, min, sec
+     * @return {gtime_t}                             output:    gtime_t
      */
-
     gtime_t epoch2gtime(const std::vector<double>& ep) {
         gtime_t time={0};
         int days,sec,year=(int)ep[0],mon=(int)ep[1],day=(int)ep[2];
@@ -104,7 +143,26 @@ namespace GpsTimeTool
         return time;
     }
 
+    /**
+     * @description: convert gtime_t time to gps time
+     * @param  {const gtime_t}   in:                 input:     gtime_t
+     * @return {gps_t}    :                         output:     gps_t
+     */
+    gps_t gtime2gpst(const gtime_t& in) {
+        return gps_t(in - epoch2gtime(gpst0));
+    }
 
+    /**
+     * @description: convert gps time to gtime
+     * @param  {const gps_t}   in:                  input:     gps_t
+     * @return {gtime_t}    :                      output:     gtime_t
+     */
+    gtime_t gpst2gtime(const gps_t& in) {
+        gtime_t res = epoch2gtime(gpst0);
+        res.time += in.week * SEC_A_WEEK + (int)in.sec;
+        res.sec += (in.sec - (int)in.sec);
+        return res;
+    }
 };
 
 #endif //_GPS_TIME_TOOL_STRUCT_H_
