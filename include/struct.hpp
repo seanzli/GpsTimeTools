@@ -4,7 +4,7 @@
  * @Author: Sean
  * @Date: 2021-08-10 20:54:55
  * @LastEditors: Sean
- * @LastEditTime: 2021-08-12 21:59:41
+ * @LastEditTime: 2021-08-12 22:02:30
  */
 
 #ifndef _GPS_TIME_TOOL_STRUCT_H_
@@ -164,7 +164,7 @@ namespace GpsTimeTool
         return res;
     }
 
-        /**
+    /**
      * @description: convert gtime_t time to gps time
      * @param  {const gtime_t}   in:                 input:     gtime_t
      * @return {gps_t}    :                         output:     gps_t
