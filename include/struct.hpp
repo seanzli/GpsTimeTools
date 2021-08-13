@@ -4,7 +4,7 @@
  * @Author: Sean
  * @Date: 2021-08-10 20:54:55
  * @LastEditors: Sean
- * @LastEditTime: 2021-08-13 20:51:25
+ * @LastEditTime: 2021-08-13 21:00:08
  */
 
 #ifndef _GPS_TIME_TOOL_STRUCT_H_
@@ -211,6 +211,32 @@ namespace GpsTimeTool
                 return in - leaps[i][6];
         }
         return in;
+    }
+
+    /**
+     * @description: convert deg to deg-min-sec
+     * @param  {const double}   deg:                input:      deg
+     * @param  {std::vector<double>&}    dms       output:     deg-min-sec
+     * @result :
+     */
+    void deg2dms(const double deg, std::vector<double>& dms) {
+        dms.clear();
+        dms.resize(3);
+        double sign=deg<0.0?-1.0:1.0,a=fabs(deg);
+        dms[0]=floor(a); a=(a-dms[0])*60.0;
+        dms[1]=floor(a); a=(a-dms[1])*60.0;
+        dms[2]=a; dms[0]*=sign;
+    }
+
+    /**
+     * @description: convert deg-min-sec to deg (degree)
+     * @param  {const std::vector<double>&}   dms:  input:     deg-min-sec
+     * @return {double}    :                       output:     deg
+     */
+    double dms2deg(const std::vector<double>& dms)
+    {
+        double sign=dms[0]<0.0?-1.0:1.0;
+        return sign*(fabs(dms[0])+dms[1]/60.0+dms[2]/3600.0);
     }
 };
 
