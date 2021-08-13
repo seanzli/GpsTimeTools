@@ -4,7 +4,7 @@
  * @Author: Sean
  * @Date: 2021-08-10 20:54:55
  * @LastEditors: Sean
- * @LastEditTime: 2021-08-12 22:02:30
+ * @LastEditTime: 2021-08-13 20:51:25
  */
 
 #ifndef _GPS_TIME_TOOL_STRUCT_H_
@@ -36,7 +36,7 @@ namespace GpsTimeTool
             sec = _sec - (int)_sec;
         }
 
-        gtime_t operator+(double _sec) noexcept
+        gtime_t operator+(const double _sec) const noexcept
         {
             double t, s = this->sec;
             s += _sec;
@@ -45,7 +45,7 @@ namespace GpsTimeTool
             return gtime_t(this->time + (int)t, s - t);
         }
 
-        gtime_t operator-(double _sec) noexcept
+        gtime_t operator-(const double _sec) const noexcept
         {
             return this->operator+(-1.0 * _sec);
         }
@@ -165,7 +165,7 @@ namespace GpsTimeTool
     }
 
     /**
-     * @description: convert gtime_t time to gps time
+     * @description: convert gtime_t time to bdt time
      * @param  {const gtime_t}   in:                 input:     gtime_t
      * @return {gps_t}    :                         output:     gps_t
      */
@@ -174,7 +174,7 @@ namespace GpsTimeTool
     }
 
     /**
-     * @description: convert gps time to gtime
+     * @description: convert bdt time to gtime
      * @param  {const gps_t}   in:                  input:     gps_t
      * @return {gtime_t}    :                      output:     gtime_t
      */
@@ -183,6 +183,34 @@ namespace GpsTimeTool
         res.time += in.week * SEC_A_WEEK + (int)in.sec;
         res.sec += (in.sec - (int)in.sec);
         return res;
+    }
+
+    /**
+     * @description: convert gps time to utc, considering leaps
+     * @param  {const gtime_t}   in:                input:     gps time
+     * @return {gtime_t}    :                      output:     utc time
+     */
+    gtime_t gpst2utc(const gtime_t& in) {
+        gtime_t res;
+        for (int i = 0; leaps[i][0] > 0; ++i) {
+            res = in + leaps[i][6];
+            if (res - epoch2gtime(leaps[i]) >= 0.0)
+                return res;
+        }
+        return in;
+    }
+
+    /**
+     * @description: convert utc time to gps time
+     * @param  {const gtime_t}   in:                input:     utc time
+     * @return {gtime_t}    :                      output:     gps time
+     */
+    gtime_t utc2gpst(const gtime_t& in) {
+        for (int i = 0; leaps[i][0] > 0; ++i) {
+            if (in - epoch2gtime(leaps[i]) >= 0.0)
+                return in - leaps[i][6];
+        }
+        return in;
     }
 };
 

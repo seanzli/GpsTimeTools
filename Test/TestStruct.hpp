@@ -4,7 +4,7 @@
  * @Author: Sean
  * @Date: 2021-08-10 21:07:15
  * @LastEditors: Sean
- * @LastEditTime: 2021-08-12 21:54:29
+ * @LastEditTime: 2021-08-13 20:52:53
  */
 
 #include <iostream>
@@ -48,4 +48,8 @@ TEST(StructConvertTest, handleFunction) {
     EXPECT_EQ(epoch2gtime(epoch),a_time);
     std::cout << "gpst2gtime\n";
     EXPECT_EQ(gpst2gtime(a_gpst),a_time);
+
+    gtime_t utc_time = gpst2utc(a_time);
+    gtime_t a_utc_time2gpst = utc2gpst(utc_time);
+    EXPECT_EQ(a_time, a_utc_time2gpst);
 }
