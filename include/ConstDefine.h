@@ -4,18 +4,17 @@
  * @Author: Sean
  * @Date: 2021-08-11 20:34:22
  * @LastEditors: Sean
- * @LastEditTime: 2021-08-13 20:47:46
+ * @LastEditTime: 2021-08-15 11:39:14
  */
 
-#include <vector>
 
 namespace GpsTimeTool {
 
-    static const std::vector<double> gpst0 = {1980,1,6,0,0,0};    // gps time reference
-    static const std::vector<double> bdt0  = {2006,1,1,0,0,0};    // beidou time reference
+    constexpr double gpst0[] = {1980,1,6,0,0,0,0};    // gps time reference
+    constexpr double bdt0[]  = {2006,1,1,0,0,0,-14};    // beidou time reference
 
-    constexpr unsigned int MAXLEAPS = 18;
-    static const std::vector<std::vector<double>> leaps = {
+    constexpr unsigned int MAX_LEAPS = 19;
+    constexpr double leaps[][MAX_LEAPS] = {
         {2017,1,1,0,0,0,-18},
         {2015,7,1,0,0,0,-17},
         {2012,7,1,0,0,0,-16},

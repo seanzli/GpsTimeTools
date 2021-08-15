@@ -4,7 +4,7 @@
  * @Author: Sean
  * @Date: 2021-08-10 21:07:15
  * @LastEditors: Sean
- * @LastEditTime: 2021-08-13 20:52:53
+ * @LastEditTime: 2021-08-15 11:37:31
  */
 
 #include <iostream>
@@ -41,7 +41,7 @@ TEST(StructConvertTest, handleFunction) {
     //gps_t a_gpst(2020, SEC_A_WEEK - 1);
     gtime_t a_time(1538265599, 0.99999);
     gps_t a_gpst = gtime2gpst(a_time);
-    std::vector<double> epoch;
+    double epoch[7];
     gtime2epoch(a_time, epoch);
 
     std::cout << "epoch2gtime\n";

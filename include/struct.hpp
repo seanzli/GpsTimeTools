@@ -4,7 +4,7 @@
  * @Author: Sean
  * @Date: 2021-08-10 20:54:55
  * @LastEditors: Sean
- * @LastEditTime: 2021-08-13 21:00:08
+ * @LastEditTime: 2021-08-15 11:37:06
  */
 
 #ifndef _GPS_TIME_TOOL_STRUCT_H_
@@ -13,7 +13,6 @@
 // c++
 #include <ctime>
 #include <cmath>
-#include <vector>
 
 //#include <iostream> // for debug;
 
@@ -101,10 +100,9 @@ namespace GpsTimeTool
      * @param  {std::vector<double>} epoch:          output:     year, mon, day, hour, min, sec
      * @return {*}
      */
-    void gtime2epoch(const gtime_t in, std::vector<double> &epoch)
+    void gtime2epoch(const gtime_t in, double* epoch)
     {
         int days, sec, mon, day;
-        epoch.resize(6);
 
         // leap year if year % 4 == 0
         days = (int)(in.time / 86400);
@@ -129,7 +127,7 @@ namespace GpsTimeTool
      * @param  {const std::vector<double>} epoch:     input:     year, mon, day, hour, min, sec
      * @return {gtime_t}                             output:    gtime_t
      */
-    gtime_t epoch2gtime(const std::vector<double>& ep) {
+    gtime_t epoch2gtime(const double* ep) {
         gtime_t time={0};
         int days,sec,year=(int)ep[0],mon=(int)ep[1],day=(int)ep[2];
         
@@ -219,9 +217,7 @@ namespace GpsTimeTool
      * @param  {std::vector<double>&}    dms       output:     deg-min-sec
      * @result :
      */
-    void deg2dms(const double deg, std::vector<double>& dms) {
-        dms.clear();
-        dms.resize(3);
+    void deg2dms(const double deg, double* dms) {
         double sign=deg<0.0?-1.0:1.0,a=fabs(deg);
         dms[0]=floor(a); a=(a-dms[0])*60.0;
         dms[1]=floor(a); a=(a-dms[1])*60.0;
@@ -233,7 +229,7 @@ namespace GpsTimeTool
      * @param  {const std::vector<double>&}   dms:  input:     deg-min-sec
      * @return {double}    :                       output:     deg
      */
-    double dms2deg(const std::vector<double>& dms)
+    double dms2deg(const double* dms)
     {
         double sign=dms[0]<0.0?-1.0:1.0;
         return sign*(fabs(dms[0])+dms[1]/60.0+dms[2]/3600.0);
