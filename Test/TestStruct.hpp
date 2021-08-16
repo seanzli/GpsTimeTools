@@ -4,13 +4,13 @@
  * @Author: Sean
  * @Date: 2021-08-10 21:07:15
  * @LastEditors: Sean
- * @LastEditTime: 2021-08-15 11:37:31
+ * @LastEditTime: 2021-08-16 21:05:03
  */
 
 #include <iostream>
 #include <gtest/gtest.h>
 
-#include "struct.hpp"
+#include "GpsTools.hpp"
 
 using namespace GpsTimeTool;
 
