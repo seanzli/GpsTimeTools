@@ -4,7 +4,7 @@
  * @Author: Sean
  * @Date: 2021-08-16 21:00:53
  * @LastEditors: Sean
- * @LastEditTime: 2021-08-16 21:15:39
+ * @LastEditTime: 2021-08-18 20:19:18
  */
 
 #include <string>
@@ -38,11 +38,6 @@ namespace NovatelDecode {
     int                     I4(unsigned char *p) { int            i; memcpy(&i, p, 4);  return i;}
     float                   R4(unsigned char *p) { float          r; memcpy(&r, p, 4);  return r;}
     double                  R8(unsigned char *p) { double         r; memcpy(&r, p, 8);  return r;}
+
     
-
-
-
-
-
-
 }
