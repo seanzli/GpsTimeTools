@@ -4,7 +4,7 @@
  * @Author: Sean
  * @Date: 2021-08-18 19:57:00
  * @LastEditors: Sean
- * @LastEditTime: 2021-08-19 21:12:52
+ * @LastEditTime: 2021-08-19 21:14:28
  */
 
 #include <vector>
@@ -31,13 +31,7 @@ namespace Raw{
 namespace Raw {
     class buffer {
     public:
-        explicit buffer(unsigned int length) : 
-            m_size(length), 
-            m_write_idx(0), 
-            m_read_idx(0),
-            m_isEmpty(true),
-            m_isFull(false)
-        {
+        explicit buffer(unsigned int length) : m_size(length), m_write_idx(0), m_read_idx(0) {
             m_buf = new char[m_size];
         }
 
@@ -79,8 +73,6 @@ namespace Raw {
         unsigned int m_size;
         unsigned int m_write_idx, m_read_idx;
         char* m_buf;
-        bool m_isFull;
-        bool m_isEmpty;
 
         unsigned int validLen() {
             if (m_write_idx > m_read_idx)
