@@ -4,7 +4,7 @@
  * @Author: Sean
  * @Date: 2021-08-18 19:57:00
  * @LastEditors: Sean
- * @LastEditTime: 2021-08-19 21:14:28
+ * @LastEditTime: 2021-08-19 21:33:38
  */
 
 #include <vector>
@@ -31,7 +31,9 @@ namespace Raw{
 namespace Raw {
     class buffer {
     public:
-        explicit buffer(unsigned int length) : m_size(length), m_write_idx(0), m_read_idx(0) {
+        explicit buffer(unsigned int length) : 
+        m_size(length), m_write_idx(0), m_read_idx(0),
+        m_isEmpty(true), m_isFull(false) {
             m_buf = new char[m_size];
         }
 
@@ -43,6 +45,8 @@ namespace Raw {
         }
 
         inline unsigned int size() {return m_size;}
+        inline bool isFull() {return m_isFull;}
+        inline bool isEmpty() {return m_isEmpty;}
 
         int write(const char* buf, const unsigned int size) {
             if (buf == nullptr || size > m_size || validLen() < size) // valid buffer length less than need
@@ -61,17 +65,38 @@ namespace Raw {
                 memcpy(m_buf + m_write_idx, buf, size);
                 m_write_idx += size;
             }
-            return 0;
+            m_isFull = m_write_idx == m_read_idx;
+            return 1;
         }
 
-        int read(char* buf, const unsigned int size) {
-            return 0;
+        unsigned int read(char* buf, const unsigned int size) {
+            if (size == 0)
+                return 0;
+            int read_size = std::min(size, m_size - validLen());
+            if (m_write_idx > m_read_idx) { // tail -> read -> write -> head
+                memcpy(buf, m_buf + m_read_idx, read_size);
+                m_read_idx += read_size;
+            } else { // tail -> write -> read -> head
+                unsigned head_len = m_size - m_read_idx;
+                if (head_len > read_size) {
+                    memcpy(buf, m_buf + m_read_idx, read_size);
+                    m_read_idx += read_size;
+                } else {
+                    memcpy(buf, m_buf + m_read_idx, head_len);
+                    memcpy(buf + head_len, m_buf, read_size - head_len);
+                    m_read_idx = read_size - head_len;
+                }
+            }
+
+            m_isEmpty = m_read_idx == m_write_idx;
+            return read_size;
         }
 
 
     private:
         unsigned int m_size;
         unsigned int m_write_idx, m_read_idx;
+        bool m_isEmpty, m_isFull;
         char* m_buf;
 
         unsigned int validLen() {
