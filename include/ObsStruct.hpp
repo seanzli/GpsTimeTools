@@ -4,10 +4,11 @@
  * @Author: Sean
  * @Date: 2021-08-18 19:57:00
  * @LastEditors: Sean
- * @LastEditTime: 2021-08-18 20:33:51
+ * @LastEditTime: 2021-08-19 21:12:52
  */
 
 #include <vector>
+#include <memory.h>
 
 #include "GpsTools.hpp"
 
@@ -30,18 +31,42 @@ namespace Raw{
 namespace Raw {
     class buffer {
     public:
-        explicit buffer(unsigned int length) : m_size(length), m_write_idx(0), m_read_idx(0) {
+        explicit buffer(unsigned int length) : 
+            m_size(length), 
+            m_write_idx(0), 
+            m_read_idx(0),
+            m_isEmpty(true),
+            m_isFull(false)
+        {
             m_buf = new char[m_size];
         }
 
         ~buffer() {
             if (m_buf)
                 delete[] m_buf;
+            m_buf = nullptr;
+
         }
 
         inline unsigned int size() {return m_size;}
 
         int write(const char* buf, const unsigned int size) {
+            if (buf == nullptr || size > m_size || validLen() < size) // valid buffer length less than need
+                return 0;
+            if (m_write_idx >= m_read_idx) {  // tail -> read -> write -> head
+                int valid_len_head = m_size - m_write_idx;
+                if (valid_len_head >= size) {
+                    memcpy(m_buf + m_write_idx, buf, size);
+                    m_write_idx += size;
+                } else {
+                    memcpy(m_buf + m_write_idx, buf, valid_len_head);
+                    memcpy(m_buf, buf + valid_len_head, size - valid_len_head);
+                    m_write_idx = size - valid_len_head;
+                }
+            } else { // tail -> write -> read -> head
+                memcpy(m_buf + m_write_idx, buf, size);
+                m_write_idx += size;
+            }
             return 0;
         }
 
@@ -54,9 +79,14 @@ namespace Raw {
         unsigned int m_size;
         unsigned int m_write_idx, m_read_idx;
         char* m_buf;
+        bool m_isFull;
+        bool m_isEmpty;
 
-        unsigned int left() {
-            return m_size - m_write_idx + m_read_idx;
+        unsigned int validLen() {
+            if (m_write_idx > m_read_idx)
+                return m_size - m_write_idx + m_read_idx;
+            if (m_write_idx < m_read_idx)
+                return m_read_idx - m_write_idx;
         }
     };
 };
