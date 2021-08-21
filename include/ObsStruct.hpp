@@ -4,7 +4,7 @@
  * @Author: Sean
  * @Date: 2021-08-18 19:57:00
  * @LastEditors: Sean
- * @LastEditTime: 2021-08-19 21:33:38
+ * @LastEditTime: 2021-08-21 08:22:23
  */
 
 #include <vector>
@@ -34,7 +34,7 @@ namespace Raw {
         explicit buffer(unsigned int length) : 
         m_size(length), m_write_idx(0), m_read_idx(0),
         m_isEmpty(true), m_isFull(false) {
-            m_buf = new char[m_size];
+            m_buf = new unsigned char[m_size];
         }
 
         ~buffer() {
@@ -44,13 +44,21 @@ namespace Raw {
 
         }
 
-        inline unsigned int size() {return m_size;}
+        inline unsigned int capture() {return m_size;}
         inline bool isFull() {return m_isFull;}
         inline bool isEmpty() {return m_isEmpty;}
+        
 
-        int write(const char* buf, const unsigned int size) {
+        /**
+         * @description: buffer write
+         * @param  {const unsigned char*}  buf:    input:     buffer pointer 
+         * @param  {const unsigned int} size:      input:     buffer size
+         * @return {int}: output buf size;  0=write success
+         *                                  1=no more space to write
+         */
+        int write(const unsigned char* buf, const unsigned int size) {
             if (buf == nullptr || size > m_size || validLen() < size) // valid buffer length less than need
-                return 0;
+                return 1;
             if (m_write_idx >= m_read_idx) {  // tail -> read -> write -> head
                 int valid_len_head = m_size - m_write_idx;
                 if (valid_len_head >= size) {
@@ -66,10 +74,16 @@ namespace Raw {
                 m_write_idx += size;
             }
             m_isFull = m_write_idx == m_read_idx;
-            return 1;
+            return 0;
         }
 
-        unsigned int read(char* buf, const unsigned int size) {
+        /**
+         * @description: buffer resder
+         * @param  {unsigned char*}  buf:          output:      
+         * @param  {const unsigned int} size:      input:
+         * @return {unsigned int}: output buf size;
+         */
+        unsigned int read(unsigned char* buf, const unsigned int size) {
             if (size == 0)
                 return 0;
             int read_size = std::min(size, m_size - validLen());
@@ -94,10 +108,10 @@ namespace Raw {
 
 
     private:
-        unsigned int m_size;
-        unsigned int m_write_idx, m_read_idx;
-        bool m_isEmpty, m_isFull;
-        char* m_buf;
+        unsigned int    m_size;
+        unsigned int    m_write_idx, m_read_idx;
+        bool            m_isEmpty, m_isFull;
+        unsigned char*  m_buf;
 
         unsigned int validLen() {
             if (m_write_idx > m_read_idx)
