@@ -4,7 +4,7 @@
  * @Author: Sean
  * @Date: 2021-08-18 19:57:00
  * @LastEditors: Sean
- * @LastEditTime: 2021-08-22 10:38:39
+ * @LastEditTime: 2021-08-22 10:52:57
  */
 
 #include <vector>
@@ -103,6 +103,9 @@ namespace Raw {
     constexpr unsigned char CODE_L1Q  =  48;                  /* obs code: B1Q        (BDS) */
     constexpr unsigned char MAXCODE   =  48;                  /* max number of obs code */
     
+    constexpr unsigned char NEXOBS    =  0;
+    constexpr unsigned char NFREQ     =  3;
+
 }
 
 namespace Raw {
