@@ -4,7 +4,7 @@
  * @Author: Sean
  * @Date: 2021-08-16 21:00:53
  * @LastEditors: Sean
- * @LastEditTime: 2021-08-21 08:37:18
+ * @LastEditTime: 2021-08-22 10:46:48
  */
 
 #include <string>
@@ -45,6 +45,8 @@ namespace NovatelDecode {
         NO_ERROR,             
         CRC32_CHECK_FALSE,
         MESSAGE_TYPE_ASSCII,
+        NO_MATCH_DECODER,
+        LENGTH_ERROR
     };
 
     /**
@@ -88,7 +90,7 @@ namespace NovatelDecode {
             case ID_RANGECMP    : return decode_rangecmpb(buf, len);
             case ID_RAWEPHEM    : return decode_rawephemb(buf, len);
         }
-        return DECODE_ERROR::NO_ERROR;
+        return DECODE_ERROR::NO_MATCH_DECODER;
     }
     
 
@@ -100,7 +102,7 @@ namespace NovatelDecode {
      */
     DECODE_ERROR decode_rangeb(const unsigned char* buf, const unsigned int len) {
 
-        return DECODE_ERROR::NO_ERROR;
+        return DECODE_ERROR::NO_MATCH_DECODER;
     }
 
     /**
@@ -110,6 +112,27 @@ namespace NovatelDecode {
      * @return {DECODE_ERROR}: output sign
      */
     DECODE_ERROR decode_rangecmpb(const unsigned char* buf, const unsigned int len) {
+
+        int nobs = U4(buf + Oem4HeaderLen); // number of obs
+        const int obs_length = 24;
+
+        //length check
+        if (len < Oem4HeaderLen + 4 + obs_length * nobs)
+            return DECODE_ERROR::LENGTH_ERROR;
+        
+        const unsigned char* p = buf + Oem4HeaderLen + 4;
+        
+        double psr,adr,adr_rolls,lockt,tt,dop,snr,wavelen;
+        int i,index,nobs,prn,sat,sys,code,freq,pos;
+        int track,plock,clock,parity,halfc,lli;
+        
+        for (int i = 0; i < nobs; ++i) {
+            if((freq = decode_trackstat(U4(p + i * obs_length), sys, code, track, plock, clock,
+                                        parity, halfc)) < 0)
+                continue;
+            
+        }
+
 
         return DECODE_ERROR::NO_ERROR;
     }
@@ -122,6 +145,85 @@ namespace NovatelDecode {
      */
     DECODE_ERROR decode_rawephemb(const unsigned char* buf, const unsigned int len) {
 
-        return DECODE_ERROR::NO_ERROR;
+        return DECODE_ERROR::NO_MATCH_DECODER;
+    }
+
+    /**
+     * @description: decode_trackstat
+     * @param  {unsigned int}  stat:           input:       stat code
+     * @param  ...                             output:      stat options
+     * @return {int}: freq code
+     */
+    int decode_trackstat(unsigned int stat, int& sys, int& code, int& track, int& plock, int& clock,
+                         int& parity, int& halfc) {
+        int satsys, sigtype, freq = 0;
+        
+        track  = stat&0x1F;
+        plock  = (stat>>10)&1;
+        parity = (stat>>11)&1;
+        clock  = (stat>>12)&1;
+        satsys = (stat>>16)&7;
+        halfc  = (stat>>28)&1;
+        sigtype= (stat>>21)&0x1F;
+
+        switch (satsys) {
+            case 0: sys = SYS_GPS; break;
+            case 1: sys = SYS_GLO; break;
+            case 2: sys = SYS_SBS; break;
+            case 3: sys = SYS_GAL; break;
+            case 4: sys = SYS_CMP; break;
+            case 5: sys = SYS_QZS; break;
+            default:
+                return -1; // unknown system
+        }
+
+        if (sys ==SYS_GPS||sys ==SYS_QZS) {
+            switch (sigtype) {
+                case  0: freq=0; code =CODE_L1C; break; /* L1C/A */
+                case  5: freq=0; code =CODE_L1P; break; /* L1P */
+                case  9: freq=1; code =CODE_L2W; break; /* L2Pcodeless */
+                case 14: freq=2; code =CODE_L5Q; break; /* L5Q (OEM6) */
+                case 17: freq=1; code =CODE_L2X; break; /* L2C(M+L) */
+                default: freq=-1; break;
+            }
+        }
+        else if (sys ==SYS_GLO) {
+            switch (sigtype) {
+                case  0: freq=0; code =CODE_L1C; break; /* L1C/A */
+                case  1: freq=1; code =CODE_L2C; break; /* L2C/A (OEM6) */
+                case  5: freq=1; code =CODE_L2P; break; /* L2P */
+                default: freq=-1; break;
+            }
+        }
+        else if (sys ==SYS_GAL) {
+            switch (sigtype) {
+                case  1: freq=0; code =CODE_L1B; break; /* E1B  (OEM6) */
+                case  2: freq=0; code =CODE_L1C; break; /* E1C  (OEM6) */
+                case 12: freq=2; code =CODE_L5Q; break; /* E5aQ (OEM6) */
+                case 17: freq=4; code =CODE_L7Q; break; /* E5bQ (OEM6) */
+                case 20: freq=5; code =CODE_L8Q; break; /* AltBOCQ (OEM6) */
+                default: freq=-1; break;
+            }
+        }
+        else if (sys ==SYS_CMP) {
+            switch (sigtype) {
+                case  0: freq=0; code =CODE_L1I; break; /* B1 with D1 (OEM6) */
+                case  1: freq=1; code =CODE_L7I; break; /* B2 with D1 (OEM6) */
+                case  4: freq=0; code =CODE_L1I; break; /* B1 with D2 (OEM6) */
+                case  5: freq=1; code =CODE_L7I; break; /* B2 with D2 (OEM6) */
+                default: freq=-1; break;
+            }
+        }
+        else if (sys ==SYS_SBS) {
+            switch (sigtype) {
+                case  0: freq=0; code =CODE_L1C; break; /* L1C/A */
+                case  6: freq=2; code =CODE_L5I; break; /* L5I (OEM6) */
+                default: freq=-1; break;
+            }
+        }
+        if (freq < 0)
+            return -2; // signal type decode error, sys = sys, sigtype = sigtype;
+        
+        return freq;
     }
 }
