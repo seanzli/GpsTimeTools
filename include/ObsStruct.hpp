@@ -4,7 +4,7 @@
  * @Author: Sean
  * @Date: 2021-08-18 19:57:00
  * @LastEditors: Sean
- * @LastEditTime: 2021-08-22 10:52:57
+ * @LastEditTime: 2021-08-22 11:09:50
  */
 
 #include <vector>
@@ -15,10 +15,16 @@
 
 namespace Raw{
     using namespace GpsTimeTool;
+
+    struct sat{
+        unsigned char               sys;    // sys code
+        unsigned char               prn;    // prn
+    };
+
     class obs {
     public:
         gtime_t                     time;   // time (gpst)
-        unsigned char               sat;    // satellite number
+        unsigned char               satn;   // satellite number
         std::vector<unsigned char>  snr;    // signal strength (0.25 dBHz)
         std::vector<unsigned char>  lli;    // loss of lock indicator
         std::vector<unsigned char>  code;   // code indicator
@@ -102,9 +108,47 @@ namespace Raw {
     constexpr unsigned char CODE_L1I  =  47;                  /* obs code: B1I        (BDS) */
     constexpr unsigned char CODE_L1Q  =  48;                  /* obs code: B1Q        (BDS) */
     constexpr unsigned char MAXCODE   =  48;                  /* max number of obs code */
-    
+
+    constexpr double PI         = 3.1415926535897932;  /* pi */
+    constexpr double D2R        = (PI/180.0);          /* deg to rad */
+    constexpr double R2D        = (180.0/PI);          /* rad to deg */
+    constexpr double CLIGHT     = 299792458.0;         /* speed of light (m/s)*/
+
+    constexpr double FREQ1      = 1.57542E9 ;          /* L1/E1  frequency (Hz) */
+    constexpr double FREQ2      = 1.22760E9 ;          /* L2     frequency (Hz) */
+    constexpr double FREQ5      = 1.17645E9 ;          /* L5/E5a frequency (Hz) */
+    constexpr double FREQ6      = 1.27875E9 ;          /* E6/LEX frequency (Hz) */
+    constexpr double FREQ7      = 1.20714E9 ;          /* E5b    frequency (Hz) */
+    constexpr double FREQ8      = 1.191795E9;          /* E5a+b  frequency (Hz) */
+    constexpr double FREQ1_GLO  = 1.60200E9 ;          /* GLONASS G1 base frequency (Hz) */
+    constexpr double DFRQ1_GLO  = 0.56250E6 ;          /* GLONASS G1 bias frequency (Hz/n) */
+    constexpr double FREQ2_GLO  = 1.24600E9 ;          /* GLONASS G2 base frequency (Hz) */
+    constexpr double DFRQ2_GLO  = 0.43750E6 ;          /* GLONASS G2 bias frequency (Hz/n) */
+    constexpr double FREQ3_GLO  = 1.202025E9;          /* GLONASS G3 frequency (Hz) */
+    constexpr double FREQ1_CMP  = 1.561098E9;          /* BeiDou B1 frequency (Hz) */
+    constexpr double FREQ2_CMP  = 1.20714E9 ;          /* BeiDou B2 frequency (Hz) */
+    constexpr double FREQ3_CMP  = 1.26852E9 ;          /* BeiDou B3 frequency (Hz) */
+
+
     constexpr unsigned char NEXOBS    =  0;
     constexpr unsigned char NFREQ     =  3;
+
+    constexpr double satwavelen(int sys, int frq) {
+        if (sys==SYS_CMP) {
+            if      (frq==0) return CLIGHT/FREQ1_CMP; /* B1 */
+            else if (frq==1) return CLIGHT/FREQ2_CMP; /* B3 */
+            else if (frq==2) return CLIGHT/FREQ3_CMP; /* B2 */
+        }
+        else if (sys == SYS_GPS) {
+            if      (frq==0) return CLIGHT/FREQ1; /* L1/E1 */
+            else if (frq==1) return CLIGHT/FREQ2; /* L2 */
+            else if (frq==2) return CLIGHT/FREQ5; /* L5/E5a */
+            else if (frq==3) return CLIGHT/FREQ6; /* L6/LEX */
+            else if (frq==4) return CLIGHT/FREQ7; /* E5b */
+            else if (frq==5) return CLIGHT/FREQ8; /* E5a+b */
+        }
+        return 0.0;
+    }
 
 }
 

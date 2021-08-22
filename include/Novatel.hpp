@@ -4,7 +4,7 @@
  * @Author: Sean
  * @Date: 2021-08-16 21:00:53
  * @LastEditors: Sean
- * @LastEditTime: 2021-08-22 10:55:35
+ * @LastEditTime: 2021-08-22 11:13:02
  */
 
 #include <string>
@@ -33,6 +33,8 @@ namespace NovatelDecode {
     constexpr  int ID_RANGECMP  = 140;
     constexpr  int ID_RAWEPHEM  = 41;
 
+    constexpr  double MAXVAL    = 8388608.0;
+
     constexpr unsigned char U1(const unsigned char* p) { return (unsigned char)(*p);}
     constexpr signed char   I1(const signed char *p)   { return (signed char)(*p);  }
     unsigned short          U2(const unsigned char *p) { unsigned short u; memcpy(&u, p, 2);  return u;}
@@ -40,6 +42,11 @@ namespace NovatelDecode {
     int                     I4(const unsigned char *p) { int            i; memcpy(&i, p, 4);  return i;}
     float                   R4(const unsigned char *p) { float          r; memcpy(&r, p, 4);  return r;}
     double                  R8(const unsigned char *p) { double         r; memcpy(&r, p, 8);  return r;}
+
+    /* extend sign ---------------------------------------------------------------*/
+    constexpr int exsign(unsigned int v, int bits) {
+        return (int)(v&(1<<(bits-1))?v|(~0u<<bits):v);
+    }
 
     enum class DECODE_ERROR{
         NO_ERROR,             
@@ -130,7 +137,26 @@ namespace NovatelDecode {
             if((freq = decode_trackstat(U4(p + i * obs_length), sys, code, track, plock, clock,
                                         parity, halfc)) < 0)
                 continue;
+            /* obs position */
+            if ((pos=checkpri(nullptr,sys,code,freq))<0) continue;
+
+            prn = U1(p + i*obs_length + 17);
+            if (sys == SYS_GLO)
+                prn -= 37;
             
+            dop=exsign(U4(p+4)&0xFFFFFFF,28)/256.0;
+            psr=(U4(p+7)>>4)/128.0+U1(p+11)*2097152.0;
+
+            if ((wavelen=satwavelen(sys,freq))<=0.0) { // gps bds
+                if (sys==SYS_GLO) wavelen=CLIGHT/(freq==0?FREQ1_GLO:FREQ2_GLO); //glo
+                else continue;
+            }
+
+            adr=I4(p+12)/256.0;
+            adr_rolls=(psr/wavelen+adr)/MAXVAL;
+            adr=-adr+MAXVAL*floor(adr_rolls+(adr_rolls<=0?-0.5:0.5));
+            
+            lockt=(U4(p+18)&0x1FFFFF)/32.0; /* lock time */
         }
 
 
