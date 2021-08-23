@@ -4,7 +4,7 @@
  * @Author: Sean
  * @Date: 2021-08-16 21:00:53
  * @LastEditors: Sean
- * @LastEditTime: 2021-08-22 11:13:02
+ * @LastEditTime: 2021-08-23 20:09:17
  */
 
 #include <string>
@@ -123,6 +123,9 @@ namespace NovatelDecode {
         int nobs = U4(buf + Oem4HeaderLen); // number of obs
         const int obs_length = 24;
 
+        //std::vector<obs> out;
+        obs out;
+
         //length check
         if (len < Oem4HeaderLen + 4 + obs_length * nobs)
             return DECODE_ERROR::LENGTH_ERROR;
@@ -157,6 +160,8 @@ namespace NovatelDecode {
             adr=-adr+MAXVAL*floor(adr_rolls+(adr_rolls<=0?-0.5:0.5));
             
             lockt=(U4(p+18)&0x1FFFFF)/32.0; /* lock time */
+
+
         }
 
 
@@ -275,6 +280,25 @@ namespace NovatelDecode {
             if (code==CODE_L8Q) return nex<3?-1:NFREQ+2;
         }
         return freq<NFREQ?freq:-1;
+    }
+
+    /* get observation data index ------------------------------------------------*/
+    int obsindex(std::vector<obs>& obsv, gtime_t time, sat& satn)
+    {
+        int i,j;
+
+        for (i = 0; i < obsv.size(); ++i) {
+            if (obsv[i].satn == satn) {
+                return i;
+            }
+        }
+        
+        obs cur;
+        cur.time = time;
+        cur.satn = satn;
+
+        obsv.emplace_back(cur);
+        return i;
     }
 
 }

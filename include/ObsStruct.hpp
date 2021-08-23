@@ -4,7 +4,7 @@
  * @Author: Sean
  * @Date: 2021-08-18 19:57:00
  * @LastEditors: Sean
- * @LastEditTime: 2021-08-22 11:09:50
+ * @LastEditTime: 2021-08-23 20:07:26
  */
 
 #include <vector>
@@ -19,12 +19,16 @@ namespace Raw{
     struct sat{
         unsigned char               sys;    // sys code
         unsigned char               prn;    // prn
+
+        bool operator==(const sat& in) const{
+            return (this->sys == in.sys && this->prn == in.prn);
+        }
     };
 
     class obs {
     public:
         gtime_t                     time;   // time (gpst)
-        unsigned char               satn;   // satellite number
+        sat                         satn;   // satellite number
         std::vector<unsigned char>  snr;    // signal strength (0.25 dBHz)
         std::vector<unsigned char>  lli;    // loss of lock indicator
         std::vector<unsigned char>  code;   // code indicator
