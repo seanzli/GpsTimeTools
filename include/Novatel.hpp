@@ -4,7 +4,7 @@
  * @Author: Sean
  * @Date: 2021-08-16 21:00:53
  * @LastEditors: Sean
- * @LastEditTime: 2021-08-23 20:09:17
+ * @LastEditTime: 2021-08-24 20:36:48
  */
 
 #include <string>
@@ -123,8 +123,8 @@ namespace NovatelDecode {
         int nobs = U4(buf + Oem4HeaderLen); // number of obs
         const int obs_length = 24;
 
-        //std::vector<obs> out;
-        obs out;
+        std::vector<obs> out;
+        gtime_t cur;
 
         //length check
         if (len < Oem4HeaderLen + 4 + obs_length * nobs)
@@ -161,9 +161,20 @@ namespace NovatelDecode {
             
             lockt=(U4(p+18)&0x1FFFFF)/32.0; /* lock time */
 
+            sat c(sys, prn);
+            if (obsindex(out, cur, c) < 0)
+                continue;
+            
+            obs cur;
+            cur.L[pos]    = adr;
+            cur.P[pos]    = psr;
+            cur.D[pos]    = dop;
+            cur.snr[pos]  = 0<=snr&&snr<255 ? snr * 4 + 0.5 : 0;
+            cur.lli[pos]  = lli;
+            cur.code[pos] = code;
 
+            out.emplace_back(cur);
         }
-
 
         return DECODE_ERROR::NO_ERROR;
     }

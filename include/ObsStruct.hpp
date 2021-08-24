@@ -4,7 +4,7 @@
  * @Author: Sean
  * @Date: 2021-08-18 19:57:00
  * @LastEditors: Sean
- * @LastEditTime: 2021-08-23 20:07:26
+ * @LastEditTime: 2021-08-24 20:35:01
  */
 
 #include <vector>
@@ -20,11 +20,13 @@ namespace Raw{
         unsigned char               sys;    // sys code
         unsigned char               prn;    // prn
 
+        sat(unsigned char _sys, unsigned char _prn) : sys(_sys), prn(_prn) {}
         bool operator==(const sat& in) const{
             return (this->sys == in.sys && this->prn == in.prn);
         }
     };
 
+    constexpr unsigned char FREQ_NUM = 3;
     class obs {
     public:
         gtime_t                     time;   // time (gpst)
@@ -35,6 +37,15 @@ namespace Raw{
         std::vector<double>         L;      // observation data -> carrier-phase(cycle)
         std::vector<double>         P;      // observation data -> pseudorange(m)
         std::vector<double>         D;      // observation data -> doppler frequency(Hz)
+        obs() {
+            snr.resize(FREQ_NUM);
+            lli.resize(FREQ_NUM);
+            code.resize(FREQ_NUM);
+            L.resize(FREQ_NUM);
+            P.resize(FREQ_NUM);
+            D.resize(FREQ_NUM);
+        }
+
     }; // all vectors should be the same size;
 };
 
